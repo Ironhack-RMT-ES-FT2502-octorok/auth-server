@@ -2,7 +2,8 @@ const router = require("express").Router();
 
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
-const verifyToken = require("../middlewares/auth.middlewares")
+
+const { verifyToken, verifyAdminRole } = require("../middlewares/auth.middlewares")
 
 const User = require("../models/User.model")
 
@@ -93,8 +94,8 @@ router.post("/login", async (req, res, next) => {
 
     const payload = {
       _id: foundUser._id,
-      email: foundUser.email
-      // si tuvieramos roles, tambien tendrian que ir aqui.
+      email: foundUser.email,
+      role: foundUser.role
     } // el payload es la información unica del usuario que lo identifica y que estará dentro del token.
 
     const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, { algorithm: "HS256", expiresIn: "7d" })
@@ -129,6 +130,15 @@ router.post("/crear-una-banana", verifyToken, (req, res) => {
 
   console.log(req.payload._id) // Esto me dice el id del usuario que está creando la banana
   res.status(201).json("has creado una banana")
+})
+
+// EJEMPLO DE RUTA PRIVADA SOLO ACCESIBLE PARA USUARIOS LOGEADOS Y DE TIPO ADMIN
+router.delete("/borrar-una-banana-solo-admin", verifyToken, verifyAdminRole, (req, res) => {
+  
+  // Banana.delete(...)
+
+  console.log(req.payload._id) // Esto me dice el id del usuario que está creando la banana
+  res.status(201).json("has borrado una banana porque eres un admin")
 })
 
 
